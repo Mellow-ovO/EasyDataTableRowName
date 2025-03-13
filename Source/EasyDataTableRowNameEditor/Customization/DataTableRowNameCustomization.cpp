@@ -12,17 +12,28 @@ bool EasyDataTableRowName::Editor::FDataTableRowNamePropertyTypeIdentifier::IsPr
 	const IPropertyHandle& InPropertyHandle) const
 {
 	FProperty* Property = InPropertyHandle.GetProperty();
-	if(FNameProperty* NameProperty = CastField<FNameProperty>(Property))
+	FNameProperty* NameProperty = CastField<FNameProperty>(Property);
+	if(NameProperty == nullptr)
 	{
-		FString DataTablePath = NameProperty->GetMetaData(EasyDataTableRowName::Editor::MD_OptionsFromDataTable);
-		if(DataTablePath.IsEmpty())
-		{
-			return false;
-		}
+		return false;
+	}
+	const TSharedPtr<IPropertyHandle>& ParentHandle = InPropertyHandle.GetParentHandle();
+	bool bIsInContainer = false;
+	if(ParentHandle.IsValid())
+	{
+		FProperty* ParentProperty = ParentHandle->GetProperty();
+		bIsInContainer |= CastField<FMapProperty>(ParentProperty) != nullptr;
+		bIsInContainer |= CastField<FArrayProperty>(ParentProperty) != nullptr;
+		bIsInContainer |= CastField<FSetProperty>(ParentProperty) != nullptr;
+	}
+	FString DataTablePath = bIsInContainer ? ParentHandle->GetMetaData(EasyDataTableRowName::Editor::MD_OptionsFromDataTable) : NameProperty->GetMetaData(EasyDataTableRowName::Editor::MD_OptionsFromDataTable);
+	if(!DataTablePath.IsEmpty())
+	{
 		const UDataTable* DataTable = FindObject<UDataTable>(nullptr,*DataTablePath);
 		return ::IsValid(DataTable);
 	}
-	return false;
+	const UDataTable* DataTable = FindObject<UDataTable>(nullptr,*DataTablePath);
+	return ::IsValid(DataTable);
 }
 
 TSharedRef<IPropertyTypeCustomization> EasyDataTableRowName::Editor::DataTableRowNameCustomization::MakeInstance()
@@ -201,7 +212,22 @@ void EasyDataTableRowName::Editor::DataTableRowNameCustomization::OnComboBoxOpen
 
 UDataTable* EasyDataTableRowName::Editor::DataTableRowNameCustomization::GetOriginDataTable()
 {
-	FString DataTablePath = NamePropertyHandle->GetMetaData(EasyDataTableRowName::Editor::MD_OptionsFromDataTable);
+	FProperty* Property = NamePropertyHandle->GetProperty();
+	FNameProperty* NameProperty = CastField<FNameProperty>(Property);
+	if(NameProperty == nullptr)
+	{
+		return nullptr;
+	}
+	const TSharedPtr<IPropertyHandle>& ParentHandle = NamePropertyHandle->GetParentHandle();
+	bool bIsInContainer = false;
+	if(ParentHandle.IsValid())
+	{
+		FProperty* ParentProperty = ParentHandle->GetProperty();
+		bIsInContainer |= CastField<FMapProperty>(ParentProperty) != nullptr;
+		bIsInContainer |= CastField<FArrayProperty>(ParentProperty) != nullptr;
+		bIsInContainer |= CastField<FSetProperty>(ParentProperty) != nullptr;
+	}
+	const FString DataTablePath = bIsInContainer ? ParentHandle->GetMetaData(EasyDataTableRowName::Editor::MD_OptionsFromDataTable) : NameProperty->GetMetaData(EasyDataTableRowName::Editor::MD_OptionsFromDataTable);
 	if(DataTablePath.IsEmpty())
 	{
 		return nullptr;
