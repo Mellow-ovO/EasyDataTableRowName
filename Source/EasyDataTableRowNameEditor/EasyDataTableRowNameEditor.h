@@ -13,4 +13,5 @@ public:
 protected:
 
     TSharedPtr<EasyDataTableRowName::Editor::FDataTableRowNamePropertyTypeIdentifier> Identifier;
+    FDelegateHandle DataTableNameOptionsCustomizationHandle;
 };

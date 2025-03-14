@@ -17,7 +17,12 @@ public class EasyDataTableRowNameEditor : ModuleRules
                 "GraphEditor",
                 "SlateCore",
                 "UnrealEd",
-                "AssetRegistry"
+                "AssetRegistry",
+                "BlueprintGraph",
+                "ApplicationCore",
+                "UnrealEd",
+                "Kismet",
+                "EditorWidgets"
             }
         );
 
